@@ -199,6 +199,9 @@ plot_function(0.5) | plot_function(1) | plot_function(1.5)
 What is your best assessment of what $\theta$ is doing in this setting. Consider when a 6-0 blowout is most likely, and when a 5-6 nail-biter is most likely. Note here we should treat the match as a fixed $n=11$ as we did for $n=3$ in Lab 8.\
 **Note:** In lab 8, we saw that small $\theta$ meant wins came in bunches (clumped together), so there were more 2-0 wins in a best of three series.
 
+Solution:
+A game where a 6-0 blowout is most likely is when the theta is equal to 0.5 as the probabilities are highest at 0 or 11 wins. A game where a 5-6 nail biter is most likely is probably when theta is equal to 1.5 as the probabilities are highest at 5 and 6 wins.
+
 # Question 2
 
 ## Part a
