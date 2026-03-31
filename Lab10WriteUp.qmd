@@ -238,12 +238,12 @@ Solution:
 ```{r}
 #| size: scriptsize
 # created log likelihood function
-loglikelihood_altbinom <- function(parameters, x, size){
+loglikelihood_altbinom <- function(parameters, x, n){
   p <- parameters[1]
   theta <- parameters[2]
 
 # created function for probabilities
-  probabilities <- daltbinom(x, size, p, theta)
+  probabilities <- daltbinom(x, n, p, theta)
 
 # summation to calculate log likelihood
   loglikelihood <- sum(log(probabilities))
@@ -254,7 +254,8 @@ loglikelihood_altbinom <- function(parameters, x, size){
 ## Part d
 Describe how you can use your answer to part c to find Maximum Likelihood estimates for the parameters $p$ and $\theta$ for Altham's Multiplicative Binomial Distribution based on data.
 
-
+Solution:
+To find the maximum likelihood estimates I would take data and plug it into my function to multiply the probabilities of each observation together ("and" probability). If many probabiltiies between 0 and 1 are getting multiplied together, the resulting probability will be smaller so we take the log likelihood because it is easier to see the results. The goal is to find the parameters that make the observed data most probable so we optimize/maximize to find parameters that yield the highest combined probability of all of the observations. 
 
 # Lab 10
 Peter "Snakebite" Wright is a two-time Professional Darts Corporation World Champion (2020, 2022) and a former World No. 1. He is one of the sport's most decorated players, winning nearly 50 PDC titles including the World Matchplay, UK Open, and multiple European Championships. 
