@@ -287,6 +287,14 @@ In `pdc2024.csv`, I have provided the data for the 2024 Premier League season. T
   
   Summarize the data. What do the data tell us about the breakdown of the results?
 
+Solution:
+```{r}
+#| size: scriptsize
+pdc_data <- read.csv("pdc2024.csv")
+pdc_data.cleaned <- pdc_data |>
+  filter(Score != "w/o")
+```
+
 ## Altham's Multiplicative Binomial Distribution
 For each player in the 2024 season, use the number of legs won in each match to compute maximium likelihood estimates for $p$ and $\theta$. \
 **Note**: The "for each" here can be done more efficiently with a function or a loop!
