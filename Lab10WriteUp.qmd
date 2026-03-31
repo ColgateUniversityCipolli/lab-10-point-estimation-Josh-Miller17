@@ -136,8 +136,64 @@ To help us think about the interpretation, something that was challenging before
 ## Part a
 Suppose a player has a 50\% chance of winning a specific leg, that is let $p=0.50$. Let's look at the probability they win ($x=6$) legs in the match. Compute this probability over a sequence from $\theta=0.5$ to $\theta=1.5$ and plot it using a line where the $x$-axis is $\theta$ and the $y$-axis is $P(X=6)$.
 
+solution:
+```{r}
+#| size: scriptsize
+library(tidyverse) 
+
+# created sequence of thetas
+thetas <- seq(from = 0.5, to = 1.5, by = 0.001)
+
+# created probabilities using daltbinom function from 1.1
+probabilities <- sapply(thetas, function(theta){
+  daltbinom(x = 6, size = 11, prob = 0.50, theta = theta)
+})
+
+# created dataframe consisting of my thetas and probabilities
+dataframe = data.frame(new_theta = thetas, prob = probabilities)
+
+# created plot
+ggplot(dataframe) +
+  geom_line(aes(x = new_theta, y = prob)) +
+  xlab("theta") +
+  ylab("P(X = 6)") +
+  theme_bw()
+```
+
 ## Part b
 Now, plot Altham's Multiplicative Binomial Distribution under the same parameters with $\theta=0.50$, $\theta=1$, and $\theta=1.5$. Use `ncol=1` in `facet_wrap()` to plot the PMFs in a single column for comparing.
+
+solution:
+```{r}
+#| size: scriptsize
+library(tidyverse) 
+library(patchwork)
+
+# created a function for making my plots
+plot_function <- function(theta) {
+  x_values <- 0:11
+
+
+# created probabilities using daltbinom function from 1.1
+  probabilities <- sapply(x_values, function(x){
+    daltbinom(x = x, size = 11, prob = 0.50, theta = theta)
+  })
+
+# created dataframe consisting of my thetas and probabilities
+  dataframe = data.frame(x = x_values, prob = probabilities)
+
+# created plot
+  ggplot(dataframe) +
+    geom_linerange(aes(x = x, ymin = 0, ymax = prob)) +
+    labs(title = paste("Theta =", theta),
+    x = "Number of Wins",
+    y = "Probability") +
+    theme_bw()
+}
+
+# used patchwork to plot the three plots next to each other
+plot_function(0.5) | plot_function(1) | plot_function(1.5)
+```
 
 ## Part c
 What is your best assessment of what $\theta$ is doing in this setting. Consider when a 6-0 blowout is most likely, and when a 5-6 nail-biter is most likely. Note here we should treat the match as a fixed $n=11$ as we did for $n=3$ in Lab 8.\
