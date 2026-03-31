@@ -228,7 +228,7 @@ E_altbinom_k <- function(k, size, prob, theta){
 ## Part b
 Describe how you can use your answer to part a to find Method of Moments estimates for the parameters $p$ and $\theta$ for Altham's Multiplicative Binomial Distribution based on data.
 
-
+To find method of moments estimates for the parameters, p and theta, I would pass data through the function I created above and compute the k sample moments. I would then find the expected values or population moments by using the function and then set the sample moments equal to the population moments to solve for the parameters.
 
 ## Part c
 Write a function that computes the log-likelihood for Altham's Multiplicative Binomial Distribution, given data (`x`) and proposed parameter values $p$ (`prob`) and $\theta$ (`theta`).
