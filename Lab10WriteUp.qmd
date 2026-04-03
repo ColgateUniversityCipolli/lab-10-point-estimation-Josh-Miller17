@@ -323,10 +323,10 @@ Solution:
 
 # Created function to get the number of legs won by the player
 player_legs <- function(data, player_name){
-  data |> 
-    mutate(LegsWon = ifelse(Winner == player_name, WinnerLegs, Loserlegs)) |>
+  new_data <- data |> 
+    mutate(LegsWon = ifelse(Winner == player_name, WinnerLegs, LoserLegs)) |>
     filter(Winner == player_name | Loser == player_name)
-  data$LegsWon
+  new_data$LegsWon
 }
 
 # created loglikelihood function:
@@ -334,22 +334,46 @@ loglikelihood <- function(par, x, n = 11, neg = FALSE){
   # restrict how optim() searches the parameter space (from lab) 
   p <- 1 / (1 + exp(-par[1])) # p between 0 and 1
   theta <- exp(par[2]) # theta positive
-  ll <- sum(log(daltmbinom(x, n, p, theta)))
+  ll <- sum(log(daltbinom(x, n, p, theta)))
   # Return negative if needed
   ifelse(neg, -ll, ll)
 }
 
 # created MLE function for one player 
 MLE <- function(x){
-  estimate <- optim(par=c(0,0), fn=loglikelihood, x=x, neg=T) #same method from class notes
-  p <- 1 / (1 + exp(-fit$par[1])) # p between 0 and 1
-  theta <- exp(fit$par[2]) # theta positive
-  return(c(p = p, theta = theta))
+  estimate <- optim(par=c(0,0), fn=loglikelihood, x=x, neg=TRUE) #same method from class notes
+  p_player <- 1 / (1 + exp(-estimate$par[1])) # p between 0 and 1
+  theta_player <- exp(estimate$par[2]) # theta positive
+  return(c(p = p_player, theta = theta_player))
 }
 
 # created vector of all winners and losers and then used unique function to get rid of repeats
 players <- unique(c(pdc_cleaned$Winner, pdc_cleaned$Loser))
+
+#created initialized vectors
+p_values <- numeric(length(players))
+theta_values <- numeric(length(players))
+
+# created for loop to get estimates for each player.
+for(i in 1:length(players)){
+  # used functions created above
+  x <- player_legs(pdc_cleaned, players[i])
+  estimate <- MLE(x)
+  # updated the initialized vectors
+  p_values[i] <- estimate["p"]
+  theta_values[i] <- estimate["theta"]
+
+# created dataframe with all the estimates
+results <- data.frame(Player = players,
+                      p = p_values,
+                      theta = theta_values)
+}
+
+results
 ```
+
+The players at the top of the 2024 standings shown above have the highest p values (Littler with 0.469 and Humphries with 0.461), meaning they win more and win a higher proportion of legs. A player like Peter Wright has the lowest p value and is last in the standings, meaning he wins fewer legs on average. Players like Luke Littler and Luke Humphries have higher thetas (1.316 and 1.205 respectively). This likely means that their games closer and more competetive (closer to 6-5 or 6-4) where as someone like Peter Wright has a lower theta (0.989) implying that his games are closer to blowouts, with him likely losing more often then not based off his p value and the standings.
+
 
 ## Altham's Multiplicative Beta Binomial Distribution
 
