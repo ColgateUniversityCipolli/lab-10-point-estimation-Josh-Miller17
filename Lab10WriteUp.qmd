@@ -290,10 +290,22 @@ In `pdc2024.csv`, I have provided the data for the 2024 Premier League season. T
 Solution:
 ```{r}
 #| size: scriptsize
+library(tidyverse)
 pdc_data <- read.csv("pdc2024.csv")
-pdc_data.cleaned <- pdc_data |>
-  filter(Score != "w/o")
+pdc_cleaned <- pdc_data |>
+  filter(Score != "w/o") |> # removed walkovers
+  mutate(Night = as.numeric(Night)) |> # made night column all numbers instead of strings
+  filter(Night <= 16) |> # kept only nights 1-16
+  separate(Score, into = c("WinnerLegs", "LoserLegs"), sep = "-", convert = TRUE) 
+  # created two new columns "WinnerLegs" and "LoserLegs" that keep track of the number of legs each player has won
+
+# created summary statistics table
+pdc_cleaned |>
+  count(WinnerLegs, LoserLegs) |>
+  mutate(propotion = n / sum(n))
 ```
+
+The most common score was 6-5 with about 28% of games ending with that score followed closely by 6-4 and 6-3, meaning most games were competetive. Blowouts where pretty infrequent, at least in comparison to close games. 
 
 ## Altham's Multiplicative Binomial Distribution
 For each player in the 2024 season, use the number of legs won in each match to compute maximium likelihood estimates for $p$ and $\theta$. \
@@ -304,6 +316,40 @@ For each player in the 2024 season, use the number of legs won in each match to 
 **Note:** In Lecture on Monday, we used transformations to restrict how `optim()` searches the parameter space. For example, here, you might consider
 `p <- 1/(1+exp(-par[1]))` and `theta <- exp(par[2])`.
 * Make comments about the MLEs in the context of the standings.
+
+Solution:
+```{r}
+#| size: scriptsize
+
+# Created function to get the number of legs won by the player
+player_legs <- function(data, player_name){
+  data |> 
+    mutate(LegsWon = ifelse(Winner == player_name, WinnerLegs, Loserlegs)) |>
+    filter(Winner == player_name | Loser == player_name)
+  data$LegsWon
+}
+
+# created loglikelihood function:
+loglikelihood <- function(par, x, n = 11, neg = FALSE){
+  # restrict how optim() searches the parameter space (from lab) 
+  p <- 1 / (1 + exp(-par[1])) # p between 0 and 1
+  theta <- exp(par[2]) # theta positive
+  ll <- sum(log(daltmbinom(x, n, p, theta)))
+  # Return negative if needed
+  ifelse(neg, -ll, ll)
+}
+
+# created MLE function for one player 
+MLE <- function(x){
+  estimate <- optim(par=c(0,0), fn=loglikelihood, x=x, neg=T) #same method from class notes
+  p <- 1 / (1 + exp(-fit$par[1])) # p between 0 and 1
+  theta <- exp(fit$par[2]) # theta positive
+  return(c(p = p, theta = theta))
+}
+
+# created vector of all winners and losers and then used unique function to get rid of repeats
+players <- unique(c(pdc_cleaned$Winner, pdc_cleaned$Loser))
+```
 
 ## Altham's Multiplicative Beta Binomial Distribution
 
