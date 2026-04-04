@@ -422,14 +422,15 @@ bbloglikelihood <- function(par, x, n = 11, neg = FALSE){
   theta <- exp(par[3])
   x_values <- 0:6
   # used log probs function above to get log probs
-  log_prob <- log_probs(x_vals, n, alpha, beta, theta)
+  log_prob <- log_probs(x_values, n, alpha, beta, theta)
   # summed log probs like I did in 5.2 for each observation. Had to use x+1 to go through the x values 
   ll <- sum(log_prob[x+1])
   # Return negative if needed
   ifelse(neg, -ll, ll)
+}
 
 # created MLE function for one player 
-MLE <- function(x){
+bbMLE <- function(x){
   estimate <- optim(par=c(0,0,0), fn=bbloglikelihood, x=x, neg=TRUE) # same as 5.2 with one more parameter
   alpha_player <- exp(estimate$par[1]) # alpha must be positive
   beta_player <- exp(estimate$par[2]) # beta must be positive
@@ -438,7 +439,72 @@ MLE <- function(x){
   return(c(alpha = alpha_player, beta = beta_player, theta = theta_player))
 }
 
+# created vector of all winners and losers and then used unique function to get rid of repeats
+players <- unique(c(pdc_cleaned$Winner, pdc_cleaned$Loser))
+
+#created initialized vectors
+alpha_values <- numeric(length(players))
+beta_values <- numeric(length(players))
+theta_values <- numeric(length(players))
+
+# created for loop to get estimates for each player.
+for(i in 1:length(players)){
+  # used functions created above
+  x <- player_legs(pdc_cleaned, players[i])
+  estimate <- bbMLE(x)
+  # updated the initialized vectors
+  alpha_values[i] <- estimate["alpha"]
+  beta_values[i] <- estimate["beta"]
+  theta_values[i] <- estimate["theta"]
+}
+
+# mean and sd of beta (directly from lab)
+beta_mean <- alpha_values / (alpha_values + beta_values)
+beta_sd <- sqrt((alpha_values*beta_values)/((alpha_values + beta_values)^2 * (alpha_values + beta_values + 1)))
+
+# created dataframe with all the estimates (same as 5.2 with mean and sd now)
+results <- data.frame(Player = players,
+                      alpha = alpha_values,
+                      beta = beta_values,
+                      theta = theta_values,
+                      mean = beta_mean,
+                      sd = beta_sd)
+results
 ```
+
+```{r}
+#| size: scriptsize
+library(tidyverse)
+
+# created initialized, empty vectors
+x_vals <- seq(0, 1, by = 0.01)
+x_values <- c()
+y_values <- c()
+player_values <- c()
+
+# created for loop to loop over players. Updated y values using alpha and beta from above and updated initialized vectors
+for(i in 1:length(players)){
+  y_vals <- dbeta(x_vals, alpha_values[i], beta_values[i])
+  x_values <- c(x_values, x_vals)
+  y_values <- c(y_values, y_vals)
+  player_values <- c(player_values, rep(players[i], length(x_vals)))
+}
+
+# created dataframe with data from above
+df <- data.frame(x = x_values, y = y_values, Player = player_values)
+
+# created plot
+ggplot() +
+  geom_line(data = df, aes(x = x, y = y)) +
+  facet_wrap(~Player, ncol = 1, scales = "free_y") +
+  # my plot came back looking very squished so I looked up how to change the scale and it told me to include "free_y"
+  theme_bw()
+```
+
 
 ## Executive Summary
 Summarize the work you've done here to provide a brief (200-300 word) data-driven summary of the 2024 Premier League season using your work in Lab 10. Your summary should be professional, clear, and all claims should be corroborated with statistical support.
+
+
+Solution:
+The 2024 Premier League Darts season 
