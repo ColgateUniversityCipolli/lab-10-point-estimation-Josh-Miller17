@@ -372,7 +372,7 @@ results <- data.frame(Player = players,
 results
 ```
 
-The players at the top of the 2024 standings shown above have the highest p values (Littler with 0.469 and Humphries with 0.461), meaning they win more and win a higher proportion of legs. A player like Peter Wright has the lowest p value and is last in the standings, meaning he wins fewer legs on average. Players like Luke Littler and Luke Humphries have higher thetas (1.316 and 1.205 respectively). This likely means that their games closer and more competetive (closer to 6-5 or 6-4) where as someone like Peter Wright has a lower theta (0.989) implying that his games are closer to blowouts, with him likely losing more often then not based off his p value and the standings.
+The players at the top of the 2024 standings shown above have the highest p values (Littler with 0.469 and Humphries with 0.461), meaning they win more and win a higher proportion of legs. A player like Peter Wright has the lowest p value and is last in the standings, meaning he wins fewer legs on average. Players like Luke Littler and Luke Humphries have higher thetas (1.316 and 1.205 respectively). This likely means that their games closer and more competetive (closer to 6-5 or 6-4) where as someone like Peter Wright has a lower theta (0.989) implying that his games are closer to blowouts, with him likely losing more often then not based off his p value and the standings
 
 
 ## Altham's Multiplicative Beta Binomial Distribution
@@ -392,6 +392,53 @@ For each player in the 2024 season, use the number of legs won in each match to 
 \end{align*}
 * Make comments about the MLEs in the context of the standings.\
 **Note**: The players alternate who throws first in a leg has the mathematical "head start" to reach a finish before their opponent can take another turn. Players alternate who throws first with each leg.
+
+```{r}
+#| size: scriptsize
+
+# Created function to get the number of legs won by the player (copied from 5.2)
+player_legs <- function(data, player_name){
+  new_data <- data |> 
+    mutate(LegsWon = ifelse(Winner == player_name, WinnerLegs, LoserLegs)) |>
+    filter(Winner == player_name | Loser == player_name)
+  new_data$LegsWon
+}
+
+# created function to get log of probabilities
+log_probs <- function(x_values, n, alpha, beta, theta){
+  # created function to get normal probabilities
+  probabilities <- sapply(x_values, function(x){
+    daltbbinom(x, n, a = alpha, b = beta, theta = theta)
+  })
+  # took log of probabilities
+  log(probabilities)
+}
+
+# created loglikelihood function:
+bbloglikelihood <- function(par, x, n = 11, neg = FALSE){
+  # restrict how optim() searches the parameter space (from lab). Make sure all params are positive (use exp) 
+  alpha <- exp(par[1]) 
+  beta <- exp(par[2])
+  theta <- exp(par[3])
+  x_values <- 0:6
+  # used log probs function above to get log probs
+  log_prob <- log_probs(x_vals, n, alpha, beta, theta)
+  # summed log probs like I did in 5.2 for each observation. Had to use x+1 to go through the x values 
+  ll <- sum(log_prob[x+1])
+  # Return negative if needed
+  ifelse(neg, -ll, ll)
+
+# created MLE function for one player 
+MLE <- function(x){
+  estimate <- optim(par=c(0,0,0), fn=bbloglikelihood, x=x, neg=TRUE) # same as 5.2 with one more parameter
+  alpha_player <- exp(estimate$par[1]) # alpha must be positive
+  beta_player <- exp(estimate$par[2]) # beta must be positive
+  theta_player <- exp(estimate$par[3]) # theta must be positive
+  # returned same as MLE function in 5.2
+  return(c(alpha = alpha_player, beta = beta_player, theta = theta_player))
+}
+
+```
 
 ## Executive Summary
 Summarize the work you've done here to provide a brief (200-300 word) data-driven summary of the 2024 Premier League season using your work in Lab 10. Your summary should be professional, clear, and all claims should be corroborated with statistical support.
